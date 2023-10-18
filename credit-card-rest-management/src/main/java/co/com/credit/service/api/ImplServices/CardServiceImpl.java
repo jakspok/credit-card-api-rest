@@ -168,9 +168,7 @@ public class CardServiceImpl implements ICardService {
     @Override
     public Optional<Card> deactivate(final Long cardBlocked) {
 
-        Optional<Card> card = repository.findByCardNumber(cardBlocked);
-
-        return Try.of(() -> repository.findById(card.get().getId()))
+        return Try.of(() -> repository.findById(cardBlocked))
                 .onFailure(
                         throwable -> {
                             try {
@@ -184,7 +182,7 @@ public class CardServiceImpl implements ICardService {
                                 e.printStackTrace();
                             }
                         })
-                .onSuccess(updateCard -> updateCard.get().setStatus(card.get().getStatus()))
+                .onSuccess(updateCard -> repository.deleteById(cardBlocked))
                 .getOrNull();
 
     }

@@ -5,6 +5,7 @@ import co.com.credit.service.api.model.Card;
 import co.com.credit.service.api.model.CardActivateRequest;
 import co.com.credit.service.api.model.CardDailyLimitRequest;
 import co.com.credit.service.api.model.CardDeactivateRequest;
+import co.com.credit.service.api.repositories.ICardRepository;
 import co.com.credit.service.api.services.ICardService;
 import co.com.credit.service.api.services.IPersonService;
 import io.swagger.annotations.Api;
@@ -35,6 +36,7 @@ public class CardController {
   private static final Logger LOGGER = LogManager.getLogger(CardServiceImpl.class);
 
   @Autowired private ICardService cardService;
+  @Autowired private ICardRepository iCardRepository;
 
   @PostMapping(value = "/number" ,
           produces = MediaType.APPLICATION_JSON_VALUE,
@@ -87,7 +89,7 @@ public class CardController {
   @DeleteMapping("/{cardId}")
   @ResponseBody
   public ResponseEntity deactivate(
-          @PathVariable Long cardId) {
+          @PathVariable final Long cardId) {
 
     return cardService
             .deactivate(cardId)
