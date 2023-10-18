@@ -10,7 +10,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
@@ -167,23 +166,24 @@ public class CardServiceImpl implements ICardService {
     }
 
     @Override
-    public Boolean deactivate(final Card card) {
-        return Try.of(() -> repository.findByCardNumber(card.getId()))
-                .onSuccess(cardDeleted -> card.setStatus(Status.BLOCKED))
+    public Optional<Card> deactivate(final Long cardBlocked) {
+
+        return Try.of(() -> repository.findById(cardBlocked))
                 .onFailure(
                         throwable -> {
                             try {
                                 throw new Exception(
-                                        "Error delete card in BD : "
+                                        "Error deletePerson persona in BD : "
                                                 .concat(throwable.getMessage())
-                                                .concat(", card with id: ")
-                                                .concat(String.valueOf(card)),
+                                                .concat(", persona with document: ")
+                                                .concat(String.valueOf(cardBlocked)),
                                         throwable.getCause());
                             } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         })
-                .get().isPresent();
+                .onSuccess(UpdateUser -> repository.deleteById(Long.valueOf(cardBlocked)))
+                .getOrNull();
     }
 
     @Override

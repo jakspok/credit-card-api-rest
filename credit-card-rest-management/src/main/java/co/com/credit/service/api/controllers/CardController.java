@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.hibernate.service.spi.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -27,25 +28,17 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/v1/api/card")
 @Api(tags = "Card")
+@CrossOrigin(origins = "*")
 public class CardController {
 
   private static final Logger LOGGER = LogManager.getLogger(CardServiceImpl.class);
 
   @Autowired private ICardService cardService;
 
-  @Autowired private IPersonService iPersonService;
-
-
-  @PostMapping(value = "/number")
-  @ApiResponses(
-          value = { //
-                  @ApiResponse(code = 200, message = "Generation, success"),
-                  @ApiResponse(code = 400, message = "Input invalid, Validation"),
-                  @ApiResponse(
-                          code = 422,
-                          message = "Input invalid, card generation"), //
-                  @ApiResponse(code = 500, message = "Something went wrong.")
-          })
+  @PostMapping(value = "/number" ,
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
   public ResponseEntity<?> generate(
           @Valid @RequestBody Card request,BindingResult result) {
 
@@ -67,16 +60,10 @@ public class CardController {
     }
 
 
-  @PutMapping(value = "/enroll")
-  @ApiResponses(
-      value = { //
-        @ApiResponse(code = 200, message = "Operation, Activate  success"),
-        @ApiResponse(code = 400, message = "Input invalid, Validation"),
-        @ApiResponse(
-            code = 422,
-            message = "Input invalid, Can' activate because int already activate "), //
-        @ApiResponse(code = 500, message = "Something went wrong.")
-      })
+  @PutMapping(value = "/enroll",
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
   public ResponseEntity<?> activate(
       @Valid @RequestBody CardActivateRequest request,
       BindingResult result) {
@@ -97,43 +84,23 @@ public class CardController {
             .get();
   }
 
-  @DeleteMapping(value = "/{cardId}")
-  @ApiResponses(
-      value = { //
-        @ApiResponse(code = 200, message = "Operation, Blocked  success"), //
-        @ApiResponse(code = 400, message = "Input invalid, Validation"), //
-        @ApiResponse(
-            code = 422,
-            message = "Input invalid, Can' deactivate because int already deactivate "), //
-        @ApiResponse(code = 500, message = "Something went wrong.")
-      })
-  public ResponseEntity<?> deactivate(
-      @Valid @RequestBody Card request,
-      BindingResult result) {
-    // invalid input
-    if (result.hasErrors()) {
-      throw new ValidationException("Input card id not correct", (Throwable) result);
-    }
+  @DeleteMapping(value = "blockedCard/{cardId}",
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ResponseEntity deactivate(
+          @PathVariable final String cardBlocked) {
 
-    return Try.of(() -> cardService.deactivate(request))
-            .onSuccess(card -> cardService.saveCard(request))
+    return cardService
+            .deactivate(Long.valueOf(cardBlocked))
             .map(card -> new ResponseEntity<>(card, HttpStatus.OK))
-            .onFailure(
-                    throwable -> {
-                      throw new ServiceException(
-                              "Error en blocked card :", throwable.getCause());
-                    })
-            .get();
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @PutMapping(value = "card/balance")
-  @ApiResponses(
-      value = { //
-        @ApiResponse(code = 200, message = "Operation success"), //
-        @ApiResponse(code = 400, message = "Input invalid, Validation"), //
-        @ApiResponse(code = 422, message = "Input invalid, Business maximum"), //
-        @ApiResponse(code = 500, message = "Something went wrong.")
-      })
+  @PutMapping(value = "card/balance",
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
   public ResponseEntity<?> dailyLimit(
       @Valid @RequestBody CardDailyLimitRequest request,
       BindingResult result) {

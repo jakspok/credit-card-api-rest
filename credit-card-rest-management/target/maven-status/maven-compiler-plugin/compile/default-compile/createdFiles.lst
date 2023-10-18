@@ -10,7 +10,6 @@ co/com/credit/service/api/model/Card.class
 co/com/credit/service/api/model/Person$PersonBuilder.class
 co/com/credit/service/api/model/TypeProduct.class
 co/com/credit/service/api/model/PersonSave.class
-co/com/credit/service/api/config/SpringFoxConfig.class
 co/com/credit/service/api/model/CardDailyLimitRequest$CardDailyLimitRequestBuilder.class
 co/com/credit/service/api/model/Phones$PhonesBuilder.class
 co/com/credit/service/api/controllers/PersonController.class

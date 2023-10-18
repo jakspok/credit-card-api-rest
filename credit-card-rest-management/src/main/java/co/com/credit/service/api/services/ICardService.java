@@ -8,6 +8,7 @@ import java.util.Optional;
 public interface ICardService {
 
   Optional<Card> generateCard(Card card);
+
   Optional<Card> saveCard(Card card);
 
   Optional<Card> findActiveById(Long cardId);
@@ -18,7 +19,7 @@ public interface ICardService {
 
   Boolean activate(CardActivateRequest cardActivateRequest);
 
-  Boolean deactivate(Card card);
+  Optional<Card> deactivate(Long deleteCard);
 
   Optional<Card> queryBalance(Long cardId);
 

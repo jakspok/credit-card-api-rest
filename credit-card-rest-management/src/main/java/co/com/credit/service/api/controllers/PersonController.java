@@ -24,7 +24,6 @@ public class PersonController {
 
   private static final Logger LOGGER = LogManager.getLogger(PersonController.class);
 
-  private final Gson gson = new GsonBuilder().create();
   private final IPersonService personService;
 
   @Autowired
@@ -84,7 +83,8 @@ public class PersonController {
 
   @DeleteMapping(
       value = "/deletePerson/{deletePersonId}",
-      produces = MediaType.APPLICATION_JSON_VALUE)
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity deletePerson(@PathVariable final String deletePersonId) {
 

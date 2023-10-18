@@ -9,7 +9,6 @@
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/model/CardDetailRequest.java
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/model/Card.java
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/model/PersonSave.java
-/Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/config/SpringFoxConfig.java
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/services/ICardService.java
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/model/Person.java
 /Users/jakspok/Documents/GitHub/credit-card-api-rest/credit-card-rest-management/src/main/java/co/com/credit/service/api/config/SwaggerConfig.java
