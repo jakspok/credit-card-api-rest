@@ -1,22 +1,28 @@
 package co.com.credit.service.api.model;
 
+import io.swagger.annotations.ApiModel;
 import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 import java.util.UUID;
 
+@ApiModel(value ="Person")
 @Entity
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 @ToString
+@NoArgsConstructor
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "USER_REG_TBL")
-public class Person {
+public class Person implements Serializable {
 
-  @Id @GeneratedValue private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private int id;
 
   @NotNull(message = "name is required")
   @Size(max = 20, message = "Name has a maximum of 20 characters")

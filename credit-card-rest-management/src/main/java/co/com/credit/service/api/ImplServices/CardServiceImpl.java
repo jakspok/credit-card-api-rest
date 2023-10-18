@@ -1,172 +1,190 @@
 package co.com.credit.service.api.ImplServices;
 
-import co.com.credit.service.api.model.Card;
-import co.com.credit.service.api.model.CardActivateRequest;
-import co.com.credit.service.api.model.CardDailyLimitRequest;
-import co.com.credit.service.api.model.CardDeactivateRequest;
+import co.com.credit.service.api.model.*;
 import co.com.credit.service.api.repositories.ICardRepository;
 import co.com.credit.service.api.services.ICardService;
+import co.com.credit.service.api.util.numbersRandom;
 import io.vavr.control.Try;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 @Service
 public class CardServiceImpl implements ICardService {
 
-  private static final Logger LOGGER = LogManager.getLogger(CardServiceImpl.class);
-  private final ICardRepository repository;
-  private static final String ERROR_CODE_ACTION_SAVE = "15";
-  private static final String ERROR_CODE_ACTION_FIND = "16";
-  private static final String SERVER_STATUS_CODE = "500";
+    private static final Logger LOGGER = LogManager.getLogger(CardServiceImpl.class);
+    private final ICardRepository repository;
 
-  @Autowired
-  public CardServiceImpl(final ICardRepository repository) {
+    @Autowired
+    public CardServiceImpl(final ICardRepository repository) {
 
-    this.repository = repository;
-  }
-
-    @Override
-    public Optional<Card> generateCard(Card card) {
-        return Try.of(() -> {
-
-            int max= (int) (Math.pow(10,6)-1);
-            int min= (int) Math.pow(10,6-1);
-            int range = max - min + 1;
-            int randomNumber = (int) (Math.random() * range) + min;
-
-        })
-                .onSuccess(cardGenerated -> Card.builder()
-                        .id(card.getId())
-                        .cardNumber(card.getId().concat(randomNumber))
-                        .corrId(card.getCorrId())
-                        .holderName(card.getHolderName())
-                        .cardType(card.getCardType)
-                        .expiredDate(card.expiredDate())
-                        .csv(card.getCsv())
-                        .dailyLimit(card.getDailyLimit())
-                        .status(card.getStatus())
-                        .build())
-                .onFailure(throwable -> {
-                    try {
-                        throw new Exception(
-                                "Error saving card in BD : "
-                                        .concat(throwable.getMessage())
-                                        .concat(", card with id: ")
-                                        .concat(cardId.toString()),
-                                throwable.getCause());
-                    } catch (final Exception e) {
-                        e.printStackTrace();
-                    }
-                })
-                .get();
+        this.repository = repository;
     }
 
     @Override
-  public Optional<Card> findById(final Long cardId) {
+    public Optional<Card> generateCard(Card card) {
+        return
+                Optional.ofNullable(Try.of(() -> {
 
-      return Try.of(() -> repository.findById(cardId))
-              .onSuccess(card -> LOGGER.info("Returned Card: {}", card))
-              .onFailure(
-                      throwable -> {
-                          try {
-                              throw new Exception(
-                                      "Error saving card in BD : "
-                                              .concat(throwable.getMessage())
-                                              .concat(", card with id: ")
-                                              .concat(cardId.toString()),
-                                      throwable.getCause());
-                          } catch (final Exception e) {
-                              e.printStackTrace();
-                          }
-                      })
-              .get();
-  }
+                    TypeProduct numberCard = TypeProduct.valueOf(String.valueOf(card.getProductId()));
 
-  @Override
-  public Optional<Card> findActiveById(final Long activateId) {
+                    return Card.builder()
+                            .cardNumber(Long.valueOf(numberCard.getId().concat(numbersRandom.generateRandom(10))))
+                            .holderName(card.getHolderName())
+                            .productId(numberCard)
+                            .expiredDate(card.getExpiredDate())
+                            .csv(numbersRandom.generateRandom(3))
+                            .dailyLimit(0.0)
+                            .status(Status.INACTIVE)
+                            .build();
 
-    return
-        Try.of(() -> repository.findById(activateId))
-            .onSuccess(card -> LOGGER.info("Returned Activated card: {}", card))
-            .onFailure(
-                throwable -> {
-                  try {
-                    throw new Exception(
-                        "Error saving card in BD : "
-                            .concat(throwable.getMessage())
-                            .concat(", card with id: ")
-                            .concat(activateId.toString()),
-                        throwable.getCause());
-                  } catch (final Exception e) {
-                    e.printStackTrace();
-                  }
                 })
-            .get();
-  }
+                        .onSuccess(generateCard -> LOGGER.info("Returned card: {}", card))
+                        .onFailure(throwable -> {
+                            try {
+                                throw new Exception(
+                                        "Error saving card in BD : "
+                                                .concat(throwable.getMessage().toString())
+                                                .concat(", card with id: ")
+                                                .concat(card.toString()),
+                                        throwable.getCause());
+                            } catch (final Exception e) {
+                                e.printStackTrace();
+                            }
+                        })
+                        .get());
+    }
 
-  @Override
-  public Optional<Card> changeDailyLimit(final CardDailyLimitRequest cardDailyLimitRequest) {
-    return Try.of(() -> repository.findById(cardDailyLimitRequest.getId()))
-        .onFailure(
-            throwable -> {
-              try {
-                throw new Exception(
-                    "Error saving card in BD : "
-                        .concat(throwable.getMessage())
-                        .concat(", card with id: ")
-                        .concat(String.valueOf(cardDailyLimitRequest)),
-                    throwable.getCause());
-              } catch (final Exception e) {
-                e.printStackTrace();
-              }
-            })
-            .onSuccess(UpdateBalance -> repository.save(cardActivateRequest))
-            .getOrNull();
-  }
-
-      @Override
-      public Boolean activate(final CardActivateRequest cardActivateRequest) {
-          return Try.of(() -> repository.findById(cardActivateRequest.getId()))
-                  .onFailure(
-                          throwable -> {
-                              try {
-                                  throw new Exception(
-                                          "Error delete card in BD : "
-                                                  .concat(throwable.getMessage())
-                                                  .concat(", card with id: ")
-                                                  .concat(String.valueOf(cardActivateRequest)),
-                                          throwable.getCause());
-                              } catch (final Exception e) {
-                                  e.printStackTrace();
-                              }
-                          })
-                  .onSuccess(UpdateUser -> repository.deleteById(cardActivateRequest.getId()))
-                  .get().isPresent();
-      }
 
     @Override
-      public Boolean deactivate(final CardDeactivateRequest cardDeactivateRequest) {
-        return Try.of(() -> repository.findById(cardDeactivateRequest.getId()))
-            .onFailure(
-                throwable -> {
-                  try {
-                    throw new Exception(
-                        "Error delete card in BD : "
-                            .concat(throwable.getMessage())
-                            .concat(", card with id: ")
-                            .concat(String.valueOf(cardDeactivateRequest)),
-                        throwable.getCause());
-                  } catch (final Exception e) {
-                    e.printStackTrace();
-                  }
-                })
-            .onSuccess(updateCard -> repository.deleteById(cardDeactivateRequest.getId()))
-            .get().isPresent();
-  }
+    public Optional<Card> saveCard(Card card) {
+        return Optional.ofNullable(
+                Try.of(() -> repository.save(card))
+                        .onSuccess(cardSave -> LOGGER.info("Returned card: {}", card))
+                        .onFailure(
+                                throwable -> {
+                                    try {
+                                        throw new Exception(
+                                                "Error saving card in BD : "
+                                                        .concat(throwable.getMessage())
+                                                        .concat(", card with document: ")
+                                                        .concat(String.valueOf(card.getId())),
+                                                throwable.getCause());
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                        .getOrNull());
+    }
+
+    @Override
+    public Optional<Card> findActiveById(final Long activateId) {
+
+        return
+                Try.of(() -> repository.findById(activateId))
+                        .onSuccess(card -> LOGGER.info("Returned Activated card: {}", card))
+                        .onFailure(
+                                throwable -> {
+                                    try {
+                                        throw new Exception(
+                                                "Error saving card in BD : "
+                                                        .concat(throwable.getMessage())
+                                                        .concat(", card with id: ")
+                                                        .concat(activateId.toString()),
+                                                throwable.getCause());
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                        .get();
+    }
+
+    @Override
+    public Optional<Card> findCard(Long cardNumber) {
+        return
+                Try.of(() -> repository.findByCardNumber(cardNumber))
+                        .onSuccess(card -> card.get().setStatus(Status.ACTIVE))
+                        .onFailure(
+                                throwable -> {
+                                    try {
+                                        throw new Exception(
+                                                "Error saving card in BD : "
+                                                        .concat(throwable.getMessage())
+                                                        .concat(", card with id: ")
+                                                        .concat(cardNumber.toString()),
+                                                throwable.getCause());
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                        .get();
+    }
+
+    @Override
+    public Optional<Card> changeDailyLimit(final CardDailyLimitRequest cardDailyLimitRequest) {
+        return Try.of(() -> repository.findById(cardDailyLimitRequest.getId()))
+                .onSuccess(UpdateBalance -> Card.builder().dailyLimit(cardDailyLimitRequest.getBalance()))
+                .onFailure(
+                        throwable -> {
+                            try {
+                                throw new Exception(
+                                        "Error saving card in BD : "
+                                                .concat(throwable.getMessage())
+                                                .concat(", card with id: ")
+                                                .concat(String.valueOf(cardDailyLimitRequest)),
+                                        throwable.getCause());
+                            } catch (final Exception e) {
+                                e.printStackTrace();
+                            }
+                        })
+
+                .getOrNull();
+    }
+
+    @Override
+    public Boolean activate(final CardActivateRequest cardActivateRequest) {
+        return
+                Try.of(() -> repository.findById(cardActivateRequest.getId()))
+                        .onSuccess(generateCard -> generateCard.get().setStatus(Status.ACTIVE))
+                        .onFailure(throwable -> {
+                            try {
+                                throw new Exception(
+                                        "Error saving card in BD : "
+                                                .concat(throwable.getMessage())
+                                                .concat(", card with id: ")
+                                                .concat(cardActivateRequest.getId().toString()),
+                                        throwable.getCause());
+                            } catch (final Exception e) {
+                                e.printStackTrace();
+                            }
+                        })
+                        .get().isPresent();
+
+    }
+
+    @Override
+    public Boolean deactivate(final Card card) {
+        return Try.of(() -> repository.findByCardNumber(card.getId()))
+                .onSuccess(cardDeleted -> card.setStatus(Status.BLOCKED))
+                .onFailure(
+                        throwable -> {
+                            try {
+                                throw new Exception(
+                                        "Error delete card in BD : "
+                                                .concat(throwable.getMessage())
+                                                .concat(", card with id: ")
+                                                .concat(String.valueOf(card)),
+                                        throwable.getCause());
+                            } catch (final Exception e) {
+                                e.printStackTrace();
+                            }
+                        })
+                .get().isPresent();
+    }
 
     @Override
     public Optional<Card> queryBalance(Long cardId) {

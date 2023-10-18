@@ -1,26 +1,27 @@
 package co.com.credit.service.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.annotations.ApiModel;
+import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.io.Serializable;
 
+@ApiModel(value ="Phones")
 @Entity
-@Builder
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@ToString
+@NoArgsConstructor
+@Builder
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "PHONES_REG_TBL_PHO")
-public class Phones {
+public class Phones implements Serializable {
 
-  @Id @GeneratedValue private int id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
+  private int id;
 
   @NotNull(message = "number  is required")
   @Size(max = 10, message = "Number has a maximum of 10 characters")

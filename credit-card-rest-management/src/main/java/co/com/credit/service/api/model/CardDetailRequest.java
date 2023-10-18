@@ -4,22 +4,23 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import javax.validation.constraints.Positive;
+import java.io.Serializable;
 
+@ApiModel(value ="CardDetailRequest")
 @Entity
 @Data
 @AllArgsConstructor
-@NoArgsConstructor
 @ToString
+@NoArgsConstructor
 @Builder
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "CARD_DETAIL_REG_TBL")
-@ApiModel(value ="CardDetailRequest")
-public class CardDetailRequest {
+public class CardDetailRequest implements Serializable {
 
   @Id
+  @GeneratedValue(strategy = GenerationType.SEQUENCE)
   @Positive(message = "Id Must be positive")
   @ApiModelProperty(value = "Id of card", required = true)
   private Long id;
