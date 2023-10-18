@@ -10,5 +10,7 @@ public interface ICardRepository extends CrudRepository<Card, Long> {
 
     Optional<Card> findByCardNumber(Long cardNumber);
 
+    Optional<Card> deleteByCardNumber(Card card);
+
 
 }

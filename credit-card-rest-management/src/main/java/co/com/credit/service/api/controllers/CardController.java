@@ -4,6 +4,7 @@ import co.com.credit.service.api.ImplServices.CardServiceImpl;
 import co.com.credit.service.api.model.Card;
 import co.com.credit.service.api.model.CardActivateRequest;
 import co.com.credit.service.api.model.CardDailyLimitRequest;
+import co.com.credit.service.api.model.CardDeactivateRequest;
 import co.com.credit.service.api.services.ICardService;
 import co.com.credit.service.api.services.IPersonService;
 import io.swagger.annotations.Api;
@@ -83,16 +84,13 @@ public class CardController {
                     })
             .get();
   }
-
-  @DeleteMapping(value = "blockedCard/{cardId}",
-          produces = MediaType.APPLICATION_JSON_VALUE,
-          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @DeleteMapping("/{cardId}")
   @ResponseBody
   public ResponseEntity deactivate(
-          @PathVariable final String cardBlocked) {
+          @PathVariable Long cardId) {
 
     return cardService
-            .deactivate(Long.valueOf(cardBlocked))
+            .deactivate(cardId)
             .map(card -> new ResponseEntity<>(card, HttpStatus.OK))
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
