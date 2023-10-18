@@ -15,17 +15,19 @@ public interface ICardService {
 
   Optional<Card> findCard(Long cardNumber);
 
-  Optional<Card> changeDailyLimit(CardDailyLimitRequest cardDailyLimitRequest);
+  Optional<Card> changeDailyLimit(Card card);
 
-  Boolean activate(CardActivateRequest cardActivateRequest);
+  Boolean activate(Card card);
 
   Optional<Card> deactivate(Long deleteCard);
 
-  Optional<Card> queryBalance(Long cardId);
+  Optional<Card> queryBalance(Card card);
 
-  Optional<Card> queryTransactionPurchase(Long cardId);
+  Optional<Card> queryBalanceById(Card card);
 
-  Optional<Card> queryTransaction(Long cardId);
+  Optional<Card> queryTransactionPurchase(Transaction transaction);
+
+  Optional<Card> queryTransaction(Transaction transaction);
 
 
 }

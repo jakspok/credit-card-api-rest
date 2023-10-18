@@ -124,30 +124,32 @@ public class CardServiceImpl implements ICardService {
     }
 
     @Override
-    public Optional<Card> changeDailyLimit(final CardDailyLimitRequest cardDailyLimitRequest) {
-        return Try.of(() -> repository.findById(cardDailyLimitRequest.getId()))
-                .onSuccess(UpdateBalance -> Card.builder().dailyLimit(cardDailyLimitRequest.getBalance()))
+    public Optional<Card> changeDailyLimit(final Card card) {
+
+        Card cardDaily = repository.findByCardNumber(card.getCardNumber()).get();
+
+        return Try.of(() -> repository.findById(card.getId()))
+                .onSuccess(UpdateBalance -> cardDaily.setDailyLimit((card.getDailyLimit())))
                 .onFailure(
                         throwable -> {
                             try {
                                 throw new Exception(
-                                        "Error saving card in BD : "
+                                        "Error updating balance card in BD : "
                                                 .concat(throwable.getMessage())
                                                 .concat(", card with id: ")
-                                                .concat(String.valueOf(cardDailyLimitRequest)),
+                                                .concat(String.valueOf(card)),
                                         throwable.getCause());
                             } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         })
-
                 .getOrNull();
     }
 
     @Override
-    public Boolean activate(final CardActivateRequest cardActivateRequest) {
+    public Boolean activate(final Card card) {
         return
-                Try.of(() -> repository.findById(cardActivateRequest.getId()))
+                Try.of(() -> repository.findById(card.getId()))
                         .onSuccess(generateCard -> generateCard.get().setStatus(Status.ACTIVE))
                         .onFailure(throwable -> {
                             try {
@@ -155,14 +157,13 @@ public class CardServiceImpl implements ICardService {
                                         "Error saving card in BD : "
                                                 .concat(throwable.getMessage())
                                                 .concat(", card with id: ")
-                                                .concat(cardActivateRequest.getId().toString()),
+                                                .concat(card.getId().toString()),
                                         throwable.getCause());
                             } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         })
                         .get().isPresent();
-
     }
 
     @Override
@@ -188,62 +189,84 @@ public class CardServiceImpl implements ICardService {
     }
 
     @Override
-    public Optional<Card> queryBalance(Long cardId) {
-        return Try.of(() -> repository.findById(cardId))
+    public Optional<Card> queryBalance(Card card) {
+        return
+                Try.of(() -> repository.findByCardNumber(card.getCardNumber()))
+                        .onSuccess(cardBalance -> cardBalance.get().setDailyLimit(card.getDailyLimit()))
+                        .onFailure(
+                                throwable -> {
+                                    try {
+                                        throw new Exception(
+                                                "Error query balance card in BD : "
+                                                        .concat(throwable.getMessage())
+                                                        .concat(", card with id: ")
+                                                        .concat(card.toString()),
+                                                throwable.getCause());
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                        .get();
+    }
+
+    @Override
+    public Optional<Card> queryBalanceById(Card card) {
+        return
+                Try.of(() -> repository.findById(card.getId()))
+                        .onSuccess(cardBalance -> repository.save(card))
+                        .onFailure(
+                                throwable -> {
+                                    try {
+                                        throw new Exception(
+                                                "Error query balance card in BD : "
+                                                        .concat(throwable.getMessage())
+                                                        .concat(", card with id: ")
+                                                        .concat(card.toString()),
+                                                throwable.getCause());
+                                    } catch (final Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                })
+                        .get();
+    }
+
+    @Override
+    public Optional<Card> queryTransactionPurchase(Transaction transaction) {
+        return Try.of(() -> repository.findById(transaction.getId()))
                 .onFailure(
                         throwable -> {
                             try {
                                 throw new Exception(
-                                        "Error delete card in BD : "
+                                        "Error transaction in BD : "
                                                 .concat(throwable.getMessage())
-                                                .concat(", card with id: ")
-                                                .concat(String.valueOf(cardId)),
+                                                .concat(", transaction with id: ")
+                                                .concat(String.valueOf(transaction.getId())),
                                         throwable.getCause());
                             } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         })
-                .onSuccess(card -> LOGGER.info("Returned Card: {}", card))
+                .onSuccess(card -> LOGGER.info("Returned transaction: {}", card))
                 .getOrNull();
     }
 
     @Override
-    public Optional<Card> queryTransactionPurchase(Long cardId) {
-        return Try.of(() -> repository.findById(cardId))
+    public Optional<Card> queryTransaction(Transaction transaction) {
+        return Try.of(() -> repository.findById(transaction.getId()))
                 .onFailure(
                         throwable -> {
                             try {
                                 throw new Exception(
-                                        "Error query card in BD : "
+                                        "Error transaction in BD : "
                                                 .concat(throwable.getMessage())
-                                                .concat(", card with id: ")
-                                                .concat(String.valueOf(cardId)),
+                                                .concat(", transaction with id: ")
+                                                .concat(String.valueOf(transaction.getId())),
                                         throwable.getCause());
                             } catch (final Exception e) {
                                 e.printStackTrace();
                             }
                         })
-                .onSuccess(card -> LOGGER.info("Returned Card: {}", card))
-                .getOrNull();
-    }
-
-    @Override
-    public Optional<Card> queryTransaction(Long cardId) {
-        return Try.of(() -> repository.findById(cardId))
-                .onFailure(
-                        throwable -> {
-                            try {
-                                throw new Exception(
-                                        "Error query card in BD : "
-                                                .concat(throwable.getMessage())
-                                                .concat(", card with id: ")
-                                                .concat(String.valueOf(cardId)),
-                                        throwable.getCause());
-                            } catch (final Exception e) {
-                                e.printStackTrace();
-                            }
-                        })
-                .onSuccess(card -> LOGGER.info("Returned Card: {}", card))
+                .onSuccess(card -> LOGGER.info("Returned transaction: {}", card))
                 .getOrNull();
     }
 

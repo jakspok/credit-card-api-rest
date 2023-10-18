@@ -2,15 +2,10 @@ package co.com.credit.service.api.controllers;
 
 import co.com.credit.service.api.ImplServices.CardServiceImpl;
 import co.com.credit.service.api.model.Card;
-import co.com.credit.service.api.model.CardActivateRequest;
-import co.com.credit.service.api.model.CardDailyLimitRequest;
-import co.com.credit.service.api.model.CardDeactivateRequest;
+import co.com.credit.service.api.model.Transaction;
 import co.com.credit.service.api.repositories.ICardRepository;
 import co.com.credit.service.api.services.ICardService;
-import co.com.credit.service.api.services.IPersonService;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
 import io.vavr.control.Try;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -24,8 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.ValidationException;
-import java.util.HashMap;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/v1/api/card")
@@ -35,15 +28,17 @@ public class CardController {
 
   private static final Logger LOGGER = LogManager.getLogger(CardServiceImpl.class);
 
-  @Autowired private ICardService cardService;
-  @Autowired private ICardRepository iCardRepository;
+  @Autowired
+  private ICardService cardService;
+  @Autowired
+  private ICardRepository iCardRepository;
 
-  @PostMapping(value = "/number" ,
+  @PostMapping(value = "/number",
           produces = MediaType.APPLICATION_JSON_VALUE,
           consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<?> generate(
-          @Valid @RequestBody Card request,BindingResult result) {
+          @Valid @RequestBody Card request, BindingResult result) {
 
     // invalid input
     if (result.hasErrors()) {
@@ -52,15 +47,15 @@ public class CardController {
 
     return
             Try.of(() -> cardService.generateCard(request))
-                   .onSuccess(card -> cardService.saveCard(card.get()))
-                   .map(card -> new ResponseEntity<>(card, HttpStatus.OK))
-                   .onFailure(
-                           throwable -> {
-                             throw new ServiceException(
-                                     "Error en activacion de tarjeta  : ", throwable.getCause());
-                           })
+                    .onSuccess(card -> cardService.saveCard(card.get()))
+                    .map(card -> new ResponseEntity<>(card, HttpStatus.OK))
+                    .onFailure(
+                            throwable -> {
+                              throw new ServiceException(
+                                      "Error en activacion de tarjeta  : ", throwable.getCause());
+                            })
                     .get();
-    }
+  }
 
 
   @PutMapping(value = "/enroll",
@@ -68,8 +63,8 @@ public class CardController {
           consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<?> activate(
-      @Valid @RequestBody CardActivateRequest request,
-      BindingResult result) {
+          @Valid @RequestBody Card request,
+          BindingResult result) {
 
     // invalid input
     if (result.hasErrors()) {
@@ -86,6 +81,7 @@ public class CardController {
                     })
             .get();
   }
+
   @DeleteMapping("/{cardId}")
   @ResponseBody
   public ResponseEntity deactivate(
@@ -97,28 +93,61 @@ public class CardController {
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
   }
 
-  @PutMapping(value = "card/balance",
+  @PostMapping(value = "/balance",
           produces = MediaType.APPLICATION_JSON_VALUE,
           consumes = MediaType.APPLICATION_JSON_VALUE)
   @ResponseBody
   public ResponseEntity<?> dailyLimit(
-      @Valid @RequestBody CardDailyLimitRequest request,
-      BindingResult result) {
+          @Valid @RequestBody Card card,
+          BindingResult result) {
     if (result.hasErrors()) {
       throw new ValidationException("Incorrect DailyLimit", (Throwable) result);
     }
 
-    // find existing card
-    Optional<Card> existCard = cardService.findActiveById(request.getId());
-    if (existCard != null) {
-      // set new daily limit
-      existCard.get().setDailyLimit(request.getBalance());
+    return cardService
+            .queryBalance(card)
+            .map(cardBalance -> new ResponseEntity<>(card, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
+
+  }
+
+  @GetMapping(value = "/balance/{cardId}",
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ResponseEntity<?> getBalance(
+          @Valid @RequestBody Card card,
+          BindingResult result) {
+    if (result.hasErrors()) {
+      throw new ValidationException("Incorrect Balance", (Throwable) result);
     }
 
-    HashMap res = new HashMap();
-    res.put("status_code", 422);
-    res.put("message", "Something went wrong.");
-    return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+    return cardService
+            .queryBalance(card)
+            .map(cardBalance -> new ResponseEntity<>(card, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+
   }
+
+  @GetMapping(value = "/transaction/purchase",
+          produces = MediaType.APPLICATION_JSON_VALUE,
+          consumes = MediaType.APPLICATION_JSON_VALUE)
+  @ResponseBody
+  public ResponseEntity<?> getTransactionId(
+          @Valid @RequestBody Transaction transaction,
+          BindingResult result) {
+    if (result.hasErrors()) {
+      throw new ValidationException("Incorrect transaction", (Throwable) result);
+    }
+
+    return cardService
+            .queryTransaction(transaction)
+            .map(cardBalance -> new ResponseEntity<>(transaction, HttpStatus.OK))
+            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+
+  }
+
 }
