@@ -8,6 +8,7 @@ import io.vavr.control.Try;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -167,9 +168,10 @@ public class CardServiceImpl implements ICardService {
     }
 
     @Override
-    public Optional<Card> deactivate(final Long cardBlocked) {
+    public Boolean deactivate(final Long cardBlocked) {
 
-        return Try.of(() -> repository.findById(cardBlocked))
+        return Try.of(() -> repository.findByCardNumber(cardBlocked).get())
+                .onSuccess(deleteCard -> repository.deleteById(deleteCard.getId()))
                 .onFailure(
                         throwable -> {
                             try {
@@ -183,16 +185,19 @@ public class CardServiceImpl implements ICardService {
                                 e.printStackTrace();
                             }
                         })
-                .onSuccess(updateCard -> repository.deleteById(cardBlocked))
-                .getOrNull();
+                .isSuccess();
 
     }
 
     @Override
     public Optional<Card> queryBalance(Card card) {
+
+        Card cardBalance = repository.findByCardNumber(card.getId()).get();
+        Card cardNumber = repository.findById(cardBalance.getId()).get();
+
         return
-                Try.of(() -> repository.findByCardNumber(card.getCardNumber()))
-                        .onSuccess(cardBalance -> cardBalance.get().setDailyLimit(card.getDailyLimit()))
+                Try.of(() -> repository.findByCardNumber(cardNumber.getId()))
+                        .onSuccess(cardBalance1 -> cardBalance.setDailyLimit(card.getDailyLimit()))
                         .onFailure(
                                 throwable -> {
                                     try {

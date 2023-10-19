@@ -19,7 +19,7 @@ public interface ICardService {
 
   Boolean activate(Card card);
 
-  Optional<Card> deactivate(Long deleteCard);
+  Boolean deactivate(Long deleteCard);
 
   Optional<Card> queryBalance(Card card);
 

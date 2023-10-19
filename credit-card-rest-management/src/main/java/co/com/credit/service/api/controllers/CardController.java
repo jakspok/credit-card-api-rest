@@ -84,13 +84,14 @@ public class CardController {
 
   @DeleteMapping("/{cardId}")
   @ResponseBody
-  public ResponseEntity deactivate(
+  public ResponseEntity<String> deactivate(
           @PathVariable final Long cardId) {
 
-    return cardService
-            .deactivate(cardId)
-            .map(card -> new ResponseEntity<>(card, HttpStatus.OK))
-            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    cardService.deactivate(cardId);
+
+    return new ResponseEntity<String>(
+            "Product with id : " + cardId +   " Eliminated ",HttpStatus.OK);
+
   }
 
   @PostMapping(value = "/balance",
@@ -128,7 +129,6 @@ public class CardController {
             .map(cardBalance -> new ResponseEntity<>(card, HttpStatus.OK))
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
-
   }
 
   @GetMapping(value = "/transaction/purchase",
@@ -143,7 +143,7 @@ public class CardController {
     }
 
     return cardService
-            .queryTransaction(transaction)
+            .queryTransactionPurchase(transaction)
             .map(cardBalance -> new ResponseEntity<>(transaction, HttpStatus.OK))
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
